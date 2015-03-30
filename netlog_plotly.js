@@ -1,23 +1,50 @@
 (function() {
   'use strict';
-  /*global require,phantom,console,WebSocket */
+  /*global require,phantom,console*/
   var page = require('webpage').create(),
   system = require('system'),
   site, url, version, country;
 
-  var plotly = new WebSocket('ws://127.0.0.1:9527/socket', {'plotly-streamtoken': 'f3zi2wjw0n'});
+  var serialize = function(obj) {
+    var str = [];
+    for(var p in obj){
+      if (obj.hasOwnProperty(p)) {
+        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+      }
+    }
+    return str.join('&');
+  };
 
   function postData(site, loadTime, failed) {
-    var data = JSON.stringify({
-      time: Date.now(),
-      version: version,
-      country: country,
-      site: site,
-      failCount : failed ? 1 : 0,
-      loadTime: loadTime
+    var settings = {
+      operation: 'POST',
+      encoding: 'utf8',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: serialize({
+        un: 'fffw',
+        key: 'artnefz9r7',
+        origin: 'plot',
+        platform: 'js',
+        version: '0.1'
+      })
+    };
+    var now = new Date();
+    settings.data += '&args='+JSON.stringify([{
+      x: [now.toISOString()],
+      y: [loadTime]
+    }]);
+    settings.data += '&kwargs=' + JSON.stringify({
+      filename: country + '-' + site + '-' + version,
+      fileopt: 'append'
     });
-    plotly.send(data + '\n');
-    phantom.exit();
+
+    console.log(settings.data);
+    page.open('https://plot.ly/clientresp', settings, function(status) {
+      console.log('Post sonar data status: ' + status);
+      phantom.exit();
+    });
   }
 
   if (system.args.length < 5) {

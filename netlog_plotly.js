@@ -37,7 +37,7 @@
     }]);
     settings.data += '&kwargs=' + JSON.stringify({
       filename: country + '-' + site + '-' + version,
-      fileopt: 'append'
+      fileopt: 'extend'
     });
 
     console.log(settings.data);

@@ -112,7 +112,6 @@
       process(country, config.sites[i][0], config.sites[i][1], version);
     }
     waitFor(function() {
-      console.log(processedCount);
       return processedCount === config.sites.length;
     }, function() { phantom.exit(); },
     4*60*1000); // wait for at most 4 min

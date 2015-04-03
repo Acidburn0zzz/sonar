@@ -1,0 +1,10 @@
+{
+  "country": "China",
+  "sites": [
+    ["Facebook", "https://www.facebook.com"],
+    ["Twitter", "https://twitter.com"],
+    ["Google", "https://www.google.com"],
+    ["Baidu", "http://www.baidu.com"],
+    ["Download", "http://download.thinkbroadband.com/10MB.zip"]
+  ]
+}

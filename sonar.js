@@ -95,12 +95,7 @@
     page.open(url);
   }
 
-  if (system.args.length < 1) {
-    console.log('Usage: sonar.js <lantern version>');
-    phantom.exit(1);
-  } else {
-    var version = system.args[1];
-
+  function main(version, sleepMinutes) {
     var content = fs.read('config.json');
     var config = JSON.parse(content);
     var country = config.country;
@@ -111,10 +106,29 @@
     for (var i in config.sites) {
       process(country, config.sites[i][0], config.sites[i][1], version);
     }
-    waitFor(function() {
-      return processedCount === config.sites.length;
-    }, function() { phantom.exit(); },
-    4*60*1000); // wait for at most 4 min
+    if (sleepMinutes > 0) {
+      console.log('Sleep ' +  sleepMinutes + ' minutes before next round');
+      setTimeout(function() {main(version, sleepMinutes); }, sleepMinutes*60*1000);
+    } else {
+      waitFor(function() {
+        return processedCount === config.sites.length;
+      }, function() { phantom.exit(); },
+      4*60*1000); // wait for at most 4 min
+    }
+
+  }
+
+  if (system.args.length < 2) {
+    console.log('Usage: sonar.js <lantern version> [sleep minutes before next round]');
+    phantom.exit(1);
+  } else {
+    var version = system.args[1];
+    var sleepMinutes = 0;
+    if (system.args.length === 3) {
+      sleepMinutes = parseInt(system.args[2], 10);
+    }
+
+    main(version, sleepMinutes);
   }
 
 }());

@@ -35,9 +35,11 @@ HEADLESS_BUILD=true ./linuxcompile.bash
 # Run
 
 We can run several instance to test performace of different Lantern versions.
+To check two versions of lantern in 5 minutes period
 ```
 lantern_linux_headless_v2.0.0 -addr="localhost:8787" -configdir="previous_config"
 lantern_linux_headless_v2.0.1 -addr="localhost:8989" -configdir="new_config"
-while true; do phantomjs --proxy localhost:8787 sonar.js 2.0.0; sleep 300; done
-while true; do phantomjs --proxy localhost:8989 sonar.js 2.0.1; sleep 300; done
+
+nohup phantomjs --proxy localhost:8787 sonar.js 2.0.0 5 > 2.0.0.log 2>&1 &
+nohup phantomjs --proxy localhost:8989 sonar.js 2.0.1 5 > 2.0.1.log 2>&1 &
 ```

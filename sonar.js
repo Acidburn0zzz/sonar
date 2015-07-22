@@ -59,14 +59,11 @@
     };
     var ts = Date.now();
     var tags = 'country='+country+',site='+site+',version='+version;
-    settings.data = 'load_time,'+tags+' value=' +loadTime +' ' + ts;
+    var load_time_str = 'load_time,'+tags+' value=' +loadTime +' ' + ts;
+    var fail_count_str = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;
+    var size_str = 'size,'+tags+' value=' + size +' ' + ts;
+    settings.data = load_time_str + '\n' + fail_count_str + '\n' + size_str;
     poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
-      settings.data = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;
-      poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
-        settings.data = 'size,'+tags+' value=' + size +' ' + ts;
-        poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
-        });
-      });
     });
   }
 

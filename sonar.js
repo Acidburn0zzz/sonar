@@ -49,6 +49,27 @@
     console.log('Error submit data to ' + resourceError.url + ', error ' + resourceError.errorCode + ': ' + resourceError.errorString);
   };
 
+  function post2Influx(country, site, version, loadTime, failed, size) {
+    var settings = {
+      operation: 'POST',
+      encoding: 'utf8',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    };
+    var ts = Date.now();
+    var tags = 'country='+country+',site='+site+',version='+version;
+    settings.data = 'load_time,'+tags+' value=' +loadTime +' ' + ts;
+    poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
+      settings.data = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;
+      poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
+        settings.data = 'size,'+tags+' value=' + size +' ' + ts;
+        poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
+        });
+      });
+    });
+  }
+
   function postData(country, site, version, loadTime, failed, size) {
     var instance = country + '-' + site + '-' + version;
     var settings = {
@@ -69,6 +90,7 @@
     poster.open('http://pure-journey-3547.herokuapp.com/stats/' + instance, settings, function(postStatus) {
       console.log('Submit to statshub: ' + postStatus + ', data = ' + settings.data);
       processedCount = processedCount + 1;
+      post2Influx(country, site, version, loadTime, failed, size);
     });
   }
 

@@ -57,7 +57,7 @@
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     };
-    var ts = Date.now();
+    var ts = Date.now()*1000000; // nanosecond
     var tags = 'country='+country+',site='+site+',version='+version;
     var load_time_str = 'load_time,'+tags+' value=' +loadTime +' ' + ts;
     var fail_count_str = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;

@@ -63,7 +63,7 @@
     var fail_count_str = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;
     var size_str = 'size,'+tags+' value=' + size +' ' + ts;
     settings.data = load_time_str + '\n' + fail_count_str + '\n' + size_str;
-    poster.open('http://influx.getlantern.org:8086/write?db=sonar', settings, function(postStatus) {
+    poster.open('http://influx.getlantern.org:8080/write?db=sonar', settings, function(postStatus) {
     });
   }
 

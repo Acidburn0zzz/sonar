@@ -39,9 +39,9 @@
     }, 10000); //< repeat check every 10s
   }
 
-
   var poster = require('webpage').create(),
-  system = require('system'), fs = require('fs');
+  system = require('system'), fs = require('fs'),
+  sites, version, country;
 
   var processedCount = 0;
 
@@ -49,7 +49,8 @@
     console.log('Error submit data to ' + resourceError.url + ', error ' + resourceError.errorCode + ': ' + resourceError.errorString);
   };
 
-  function post2Influx(country, site, version, loadTime, failed, size) {
+  function post2Influx(index, loadTime, failed, size) {
+    var site = sites[index][0];
     var settings = {
       operation: 'POST',
       encoding: 'utf8',
@@ -64,10 +65,18 @@
     var size_str = 'size,'+tags+' value=' + size +' ' + ts;
     settings.data = load_time_str + '\n' + fail_count_str + '\n' + size_str;
     poster.open('http://influx.getlantern.org:8080/write?db=sonar', settings, function(postStatus) {
+      // influxdb will return 204, which is considered fail by PhantomJS
+      console.log('Submit to influx');
+      if (index+1 == sites.length) {
+      console.log('Sonar finished with ' + sites.length + ' sites');
+        phantom.exit(0);
+      }
+      process(index + 1);
     });
   }
 
-  function postData(country, site, version, loadTime, failed, size) {
+  function postData(index, loadTime, failed, size) {
+    var site = sites[index][0];
     var instance = country + '-' + site + '-' + version;
     var settings = {
       operation: 'POST',
@@ -85,69 +94,62 @@
     };
 
     poster.open('http://pure-journey-3547.herokuapp.com/stats/' + instance, settings, function(postStatus) {
-      console.log('Submit to statshub: ' + postStatus + ', data = ' + settings.data);
-      processedCount = processedCount + 1;
-      post2Influx(country, site, version, loadTime, failed, size);
+      console.log('Submit to statshub: ' + postStatus);
+      post2Influx(index, loadTime, failed, size);
     });
   }
 
-  function process(country, site, url, version) {
+  function process(index) {
+    var site = sites[index][0];
+    var url = sites[index][1];
+    console.log('Processing ' + site + ': ' + url);
+
     var page = require('webpage').create();
     var size = 0;
 
     page.onResourceError = function(resourceError) {
       console.log('Error load resource #' + resourceError.id + ', ' + resourceError.url + ', error ' + resourceError.errorCode + ': ' + resourceError.errorString);
-      page.stop();
-      processedCount = processedCount + 1;
+      //page.stop();
+      //processedCount = processedCount + 1;
     };
     page.onResourceReceived = function(response) {
       if (response.bodySize !== undefined) {
         size = size + response.bodySize;
       }
     };
+
     var started = Date.now();
     page.onLoadFinished = function (status) {
       var loadTime = Date.now() - started;
       console.log(site + ' (' + url + '): ' + status + ', takes ' + loadTime + 'ms, size = ' + size + ' bytes');
-      postData(country, site, version, loadTime, status === 'fail', size);
+      postData(index, loadTime, status === 'fail', size);
     };
     page.open(url);
   }
 
-  function main(version, sleepMinutes) {
-    var content = fs.read('config.json');
-    var config = JSON.parse(content);
-    var country = config.country;
-    if (country === undefined) {
-      console.log('Please specify country in config');
-      phantom.exit(1);
-    }
-    for (var i in config.sites) {
-      process(country, config.sites[i][0], config.sites[i][1], version);
-    }
-    if (sleepMinutes > 0) {
-      console.log('Sleep ' +  sleepMinutes + ' minutes before next round');
-      setTimeout(function() {main(version, sleepMinutes); }, sleepMinutes*60*1000);
-    } else {
-      waitFor(function() {
-        return processedCount === config.sites.length;
-      }, function() { phantom.exit(); },
-      4*60*1000); // wait for at most 4 min
-    }
-
-  }
-
   if (system.args.length < 2) {
-    console.log('Usage: sonar.js <lantern version> [sleep minutes before next round]');
+    console.log('Usage: sonar.js <lantern version>');
     phantom.exit(1);
-  } else {
-    var version = system.args[1];
-    var sleepMinutes = 0;
-    if (system.args.length === 3) {
-      sleepMinutes = parseInt(system.args[2], 10);
-    }
-
-    main(version, sleepMinutes);
   }
+  version = system.args[1];
+  var content = fs.read('config.json');
+  var config = JSON.parse(content);
+  country = config.country;
+  if (country === undefined) {
+    console.log('Please specify country in config');
+    phantom.exit(1);
+  }
+  sites = config.sites;
+  if (sites === undefined || sites.length === 0) {
+    console.log('Please specify sites in config');
+    phantom.exit(1);
+  }
+
+  process(0);
+
+  waitFor(function() {
+    return processedCount === config.sites.length;
+  }, function() { phantom.exit(); },
+  4*60*1000); // wait for at most 4 min
 
 }());

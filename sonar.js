@@ -60,9 +60,9 @@
     };
     var ts = Date.now()*1000000; // nanosecond
     var tags = 'country='+country+',site='+site+',version='+version;
-    var load_time_str = 'load_time,'+tags+' value=' +loadTime +' ' + ts;
-    var fail_count_str = 'fail_count,'+tags+' value=' + (failed?1:0) +' ' + ts;
-    var size_str = 'size,'+tags+' value=' + size +' ' + ts;
+    var load_time_str = 'load_time,'+tags+' value=' +loadTime +'i ' + ts;
+    var fail_count_str = 'fail_count,'+tags+' value=' + (failed?1:0) +'i ' + ts;
+    var size_str = 'size,'+tags+' value=' + size +'i ' + ts;
     settings.data = load_time_str + '\n' + fail_count_str + '\n' + size_str;
     poster.open('http://influx.getlantern.org:8080/write?db=sonar', settings, function(postStatus) {
       // influxdb will return 204, which is considered fail by PhantomJS

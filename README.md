@@ -7,6 +7,10 @@ Data is reported to [statshub](https://github.com/getlantern/statshub) and shown
 
 [PhantomJS](http://phantomjs.org/) is required to test the sites and report to statshub.
 
+### Install dependencies
+
+`sudo apt-get install -f libfontconfig`
+
 ### Linux 64 bit
 
 ```

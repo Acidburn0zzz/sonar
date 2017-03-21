@@ -75,30 +75,6 @@
     });
   }
 
-  function postData(index, loadTime, failed, size) {
-    var site = sites[index][0];
-    var instance = country + '-' + site + '-' + version;
-    var settings = {
-      operation: 'POST',
-      encoding: 'utf8',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: JSON.stringify({
-        dims: {
-          sonar: instance
-        },
-        increments: { failCount : failed ? 1 : 0, totalSize: size },
-        gauges: { loadTime: loadTime}
-      })
-    };
-
-    poster.open('http://pure-journey-3547.herokuapp.com/stats/' + instance, settings, function(postStatus) {
-      console.log('Submit to statshub: ' + postStatus);
-      post2Influx(index, loadTime, failed, size);
-    });
-  }
-
   function process(index) {
     var site = sites[index][0];
     var url = sites[index][1];
@@ -122,7 +98,7 @@
     page.onLoadFinished = function (status) {
       var loadTime = Date.now() - started;
       console.log(site + ' (' + url + '): ' + status + ', takes ' + loadTime + 'ms, size = ' + size + ' bytes');
-      postData(index, loadTime, status === 'fail', size);
+      post2Influx(index, loadTime, status === 'fail', size);
     };
     page.open(url);
   }
